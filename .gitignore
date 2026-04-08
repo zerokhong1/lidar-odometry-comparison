@@ -1,0 +1,25 @@
+# Build artifacts
+build/
+install/
+log/
+*.pyc
+__pycache__/
+
+# Large thirdparty (clone separately with submodules)
+traj_lo/thirdparty/eigen/
+traj_lo/thirdparty/Sophus/
+traj_lo/thirdparty/yaml-cpp/
+traj_lo/thirdparty/glm/
+traj_lo/thirdparty/robin-map/
+traj_lo/thirdparty/oneTBB/
+traj_lo/thirdparty/imgui/
+traj_lo/thirdparty/implot/
+traj_lo/thirdparty/ros/
+
+# ikd-Tree submodule for FAST-LIO2
+fast_lio2/include/ikd-Tree/
+
+# Results
+results/
+*.pcd
+*.bag

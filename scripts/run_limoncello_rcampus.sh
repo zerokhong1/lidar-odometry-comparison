@@ -20,7 +20,7 @@ echo "    /limoncello/full_pcl  - current scan in world frame"
 echo "    /limoncello/debug/*   - deskewed/filtered/downsampled"
 echo ""
 echo "  After RViz opens, open a NEW terminal and run:"
-echo "    bash /home/thailuu/play_rcampus_bag.sh"
+echo "    bash bash scripts/play_rcampus_bag.sh"
 echo ""
 
 ros2 launch limoncello limoncello.launch.py \

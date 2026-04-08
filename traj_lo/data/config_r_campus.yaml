@@ -1,0 +1,44 @@
+# Traj-LO config for R-Campus dataset (Livox Avia, ROS1 bag)
+dataset:
+  data_type: "bag_livox"
+  topic: "/livox/lidar"
+  path: "/home/thailuu/datasets/R_Campus_ros1.bag"
+  save_pose: true
+  pose_file_path: "/home/thailuu/results/trajlo_r_campus_poses.txt"
+
+calibration:
+  time_offset: 0.0
+  # Livox Avia extrinsic (LiDAR to IMU body) - identity since LO mode
+  T_body_lidar: [ 1.0, 0.0, 0.0, -0.04165,
+                  0.0, 1.0, 0.0, -0.02326,
+                  0.0, 0.0, 1.0,  0.0284,
+                  0.0, 0.0, 0.0,  1.0 ]
+  T_body_gt: [ 1.0, 0.0, 0.0, 0.0,
+               0.0, 1.0, 0.0, 0.0,
+               0.0, 0.0, 1.0, 0.0,
+               0.0, 0.0, 0.0, 1.0 ]
+
+trajectory:
+  init_interval: 3e8
+  seg_interval: 4e7
+  seg_num: 3
+  kinematic_constrain: 2.0
+  init_pose_weight: 1e9
+  converge_thresh: 0.001
+  max_iterations: 25
+
+mapping:
+  ds_size: 0.5
+  voxel_size: 0.5
+  max_voxel_num: 20
+  planer_thresh: 0.1
+  max_range: 120
+  min_range: 2.0
+
+vis:
+  frame_num: 1
+  point_num: 5
+  T_vis_lidar: [ 1.0, 0.0, 0.0, 0.0,
+                 0.0, 1.0, 0.0, 0.0,
+                 0.0, 0.0, 1.0, 0.0,
+                 0.0, 0.0, 0.0, 1.0 ]
