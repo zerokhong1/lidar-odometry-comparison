@@ -19,22 +19,25 @@ Topics: `/livox/lidar` (`livox_interfaces/CustomMsg`) · `/livox/imu` (`sensor_m
 
 ---
 
-## Results on R-Campus (ATE / end-to-end error)
+## Results on R-Campus
 
-> Metric: Absolute Trajectory Error (ATE RMSE) via `evo_ape`, with SE(3) alignment.
-> R-Campus is a **pure outdoor** dataset — large open spaces with few planar constraints,
-> which makes point-to-plane methods prone to degeneracy.
+> R-Campus has **no ground truth**, so ATE cannot be computed directly.
+> RESPLE ATE (~0.27 m) was measured with SE(3) alignment against a reference trajectory.
+> GenZ-LIO uses **loop closure error** (distance from end pose to start pose) as proxy metric.
+> R-Campus is a **pure outdoor** dataset — large open spaces with few planar constraints.
 
-| System | ATE (m) | Diverged | Notes |
-|--------|---------|----------|-------|
-| **GenZ-LIO** | **TBD*** | No | Adaptive voxel + hybrid metric (p2plane+p2point) |
-| RESPLE-LIO | ~0.27 | No | Best baseline; spline-based continuous-time |
-| RESPLE-LO | ~0.28 | No | LiDAR-only variant of RESPLE |
-| FAST-LIO2 | ~2.70 | No | Fixed voxel 0.5 m; point-to-plane only |
-| LIMOncello | TBD* | — | — |
-| Traj-LO | ~80+ | Yes | LiDAR-only; fails on large outdoor loop |
+| System | Loop Closure Err | Path (XY) | Diverged | Notes |
+|--------|-----------------|-----------|----------|-------|
+| RESPLE-LIO | — (ATE ~0.27 m) | ~1400 m | No | Best baseline; spline-based continuous-time |
+| RESPLE-LO | — (ATE ~0.28 m) | ~1400 m | No | LiDAR-only variant of RESPLE |
+| **GenZ-LIO** | **113.6 m** (XY: 94 m, Z: 63 m) | 1462 m | No | Adaptive voxel + hybrid metric; z-drift in outdoor |
+| FAST-LIO2 | — (ATE ~2.70 m) | ~1400 m | No | Fixed voxel 0.5 m; point-to-plane only |
+| LIMOncello | TBD | — | — | — |
+| Traj-LO | ~80+ m | — | Yes | LiDAR-only; fails on large outdoor loop |
 
-> \* Run `bash scripts/run_genz_lio_rcampus.sh` then play the bag to get the actual number.
+> **Note on GenZ-LIO z-drift**: R-Campus is outdoor with few vertical geometric constraints.
+> The 63 m z-drift suggests IMU noise params or extrinsic roll/pitch may need tuning for this sensor.
+> Poses saved to `~/results/genz_lio_poses.txt` (TUM format) for further analysis.
 
 ### Why GenZ-LIO should outperform FAST-LIO2 on R-Campus
 
