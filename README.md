@@ -32,12 +32,16 @@ Topics: `/livox/lidar` (`livox_interfaces/CustomMsg`) · `/livox/imu` (`sensor_m
 | RESPLE-LO | — (ATE ~0.28 m) | ~1400 m | No | LiDAR-only variant of RESPLE |
 | **GenZ-LIO** | **113.6 m** (XY: 94 m, Z: 63 m) | 1462 m | No | Adaptive voxel + hybrid metric; z-drift in outdoor |
 | FAST-LIO2 | — (ATE ~2.70 m) | ~1400 m | No | Fixed voxel 0.5 m; point-to-plane only |
-| LIMOncello | TBD | — | — | — |
+| LIMOncello | 11.47 m (XY: 3.33 m, Z: 10.97 m) | ~1400 m | No | SGal(3) LIO; excellent XY but strong z-drift outdoors |
 | Traj-LO | ~80+ m | — | Yes | LiDAR-only; fails on large outdoor loop |
 
 > **Note on GenZ-LIO z-drift**: R-Campus is outdoor with few vertical geometric constraints.
 > The 63 m z-drift suggests IMU noise params or extrinsic roll/pitch may need tuning for this sensor.
 > Poses saved to `~/results/genz_lio_poses.txt` (TUM format) for further analysis.
+>
+> **Note on LIMOncello z-drift**: XY loop closure of 3.33 m is excellent (best among tested systems),
+> but 10.97 m z-drift reflects the same outdoor vertical-constraint weakness seen in other LIO methods.
+> Poses saved to `~/results/limoncello_poses.txt` (TUM format, 132,580 poses at ~110 Hz).
 
 ### Why GenZ-LIO should outperform FAST-LIO2 on R-Campus
 
