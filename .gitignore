@@ -16,8 +16,11 @@ traj_lo/thirdparty/imgui/
 traj_lo/thirdparty/implot/
 traj_lo/thirdparty/ros/
 
-# ikd-Tree submodule for FAST-LIO2
+# ikd-Tree submodule (referenced from FAST-LIO2 workspace, not stored here)
 fast_lio2/include/ikd-Tree/
+
+# GenZ-LIO: ikd-Tree and IKFoM are referenced from ../FAST_LIO2 in workspace
+# No need to store them here
 
 # Results
 results/
