@@ -1,0 +1,50 @@
+# Traj-LO config for KITTI Odometry Sequence 00
+# Sensor: Velodyne HDL-64E @ 10 Hz
+# Dataset: KITTI raw 2011_10_03_drive_0027 (~4.5 km urban/suburban loop)
+# Ground truth: poses/00.txt (camera-0 frame)
+# Note: Traj-LO is LiDAR-only — no IMU used
+
+dataset:
+  data_type: "bag_velodyne"
+  topic: "/velodyne_points"
+  path: "/home/thailuu/datasets/kitti_seq00/kitti_seq00_ros1.bag"
+  save_pose: true
+  pose_file_path: "/home/thailuu/results/trajlo_kitti_poses.txt"
+
+calibration:
+  time_offset: 0.0
+  # LiDAR (Velodyne) in IMU/body frame — from KITTI calib_imu_to_velo.txt (inverted)
+  # For LO mode the extrinsic mainly affects output frame; use identity for body=Velodyne
+  T_body_lidar: [ 1.0, 0.0, 0.0,  0.811,
+                  0.0, 1.0, 0.0, -0.320,
+                  0.0, 0.0, 1.0,  0.800,
+                  0.0, 0.0, 0.0,  1.000 ]
+  T_body_gt: [ 1.0, 0.0, 0.0, 0.0,
+               0.0, 1.0, 0.0, 0.0,
+               0.0, 0.0, 1.0, 0.0,
+               0.0, 0.0, 0.0, 1.0 ]
+
+trajectory:
+  init_interval: 3e8       # 300 ms initialization window
+  seg_interval: 4e7        # 40 ms per trajectory segment
+  seg_num: 3
+  kinematic_constrain: 2.0
+  init_pose_weight: 1e9
+  converge_thresh: 0.001
+  max_iterations: 25
+
+mapping:
+  ds_size: 0.5             # Velodyne HDL-64E: slightly larger downsample
+  voxel_size: 0.5
+  max_voxel_num: 20
+  planer_thresh: 0.1
+  max_range: 120           # HDL-64E max range
+  min_range: 1.0           # remove car body points
+
+vis:
+  frame_num: 1
+  point_num: 5
+  T_vis_lidar: [ 1.0, 0.0, 0.0, 0.0,
+                 0.0, 1.0, 0.0, 0.0,
+                 0.0, 0.0, 1.0, 0.0,
+                 0.0, 0.0, 0.0, 1.0 ]

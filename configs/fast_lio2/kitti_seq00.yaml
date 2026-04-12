@@ -1,0 +1,48 @@
+/**:
+    ros__parameters:
+        feature_extract_enable: false
+        point_filter_num: 3          # Velodyne HDL-64E: dense scans → filter more
+        max_iteration: 3
+        filter_size_surf: 0.5        # voxel downsample for ESIKF update
+        filter_size_map: 0.5         # map voxel size
+        cube_side_length: 1000.0
+        runtime_pos_log_enable: false
+        map_file_path: "/home/thailuu/results/fast_lio2_kitti_map.pcd"
+
+        common:
+            lid_topic:  "/velodyne_points"
+            imu_topic:  "/imu/data"
+            time_sync_en: false
+            time_offset_lidar_to_imu: 0.0
+
+        preprocess:
+            lidar_type: 2          # 2 = Velodyne (VLP-16 / HDL-32 / HDL-64E)
+            scan_line: 64          # Velodyne HDL-64E
+            blind: 1.0             # ignore points closer than 1 m (less than R-Campus)
+
+        mapping:
+            acc_cov: 0.1
+            gyr_cov: 0.01
+            b_acc_cov: 0.0001
+            b_gyr_cov: 0.0001
+            fov_degree: 360.0
+            det_range: 150.0       # HDL-64E max range ~120 m
+            extrinsic_est_en: false
+
+            # KITTI raw 2011_10_03: Velodyne → IMU extrinsics
+            # From calib_imu_to_velo.txt (inverted):
+            #   T_velo_to_imu  ≈  R≈I,  t=[0.811, -0.320, 0.800] m
+            extrinsic_T: [ 0.811, -0.320, 0.800 ]
+            extrinsic_R: [ 9.999976e-01,  7.854027e-04,  2.024406e-03,
+                           7.553071e-04,  9.998898e-01,  1.482454e-02,
+                          -2.035188e-03, -1.482298e-02,  9.998881e-01 ]
+
+        publish:
+            path_en: true
+            scan_publish_en: true
+            dense_publish_en: false
+            scan_bodyframe_pub_en: false
+
+        pcd_save:
+            pcd_save_en: false
+            interval: -1

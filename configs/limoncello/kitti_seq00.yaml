@@ -1,0 +1,103 @@
+/**:
+  ros__parameters:
+    topics:
+      input:
+        lidar: /velodyne_points
+        imu:   /imu/data
+        stop_ioctree_update: /stop
+      output:
+        state: state
+        frame: full_pcl
+      frame_id: map
+
+    verbose: true
+    debug: false
+
+    sensors:
+      lidar:
+        type: 1   #  0: OUSTER
+                  #  1: VELODYNE  ← Velodyne HDL-64E
+                  #  2: HESAI
+                  #  3: LIVOX
+                  #  4: livox_interfaces/CustomMsg
+        end_of_sweep: false   # sweep reference is start of scan (Velodyne convention)
+
+      imu:
+        hz: 100   # KITTI OXTS IMU @ 100 Hz
+
+      calibration:
+        gravity_align: true      # KITTI starts from rest → align gravity
+        accel: true
+        gyro: true
+        time: 1.5                # stand-still calibration window [s]
+
+      time_offset: true          # handle possible LiDAR-IMU sync offset
+
+      extrinsics:
+        imu2baselink:
+          t: [0., 0., 0.]
+          R: [0., 0., 0.]
+
+        # Velodyne HDL-64E → IMU body (baselink)
+        # From KITTI calib_imu_to_velo.txt (inverted):
+        lidar2baselink:
+          t: [0.811, -0.320, 0.800]   # [m]
+          R: [0., 0., 0.]             # [deg] — rotation is ~0.1° (negligible)
+
+      intrinsics:
+        accel_bias: [ 0.0001, 0.0001, 0.0001 ]
+        gyro_bias:  [ 0.0001, 0.0001, 0.0001 ]
+        sm: [ 1., 0., 0.,
+              0., 1., 0.,
+              0., 0., 1. ]
+
+    filters:
+      voxel_grid:
+        leaf_size: [ .5, .5, .5 ]   # 0.5 m leaf for HDL-64E density
+
+      min_distance:
+        active: true
+        value: 1.0      # remove <1 m points (car body)
+
+      crop_box:
+        active: false
+        min: [0., 0., 0.]
+        max: [0., 0., 0.]
+
+      fov:
+        active: false
+        value: 360.
+
+      rate_sampling:
+        active: false
+        value: 2
+
+    IKFoM:
+      max_iters: 3
+      tolerance: 0.001
+      lidar_noise: 0.001
+      estimate_extrinsics: false
+
+      covariance:
+        gyro: 0.01
+        accel: 0.1
+        bias_gyro: 0.001
+        bias_accel: 0.01
+        initial_cov: [
+          0.01,   # position
+          0.01,   # rotation
+          0.1,    # velocity
+          0.01,   # accel bias
+          0.01,   # gyro bias
+          0.01    # gravity
+        ]
+
+      plane:
+        points: 5
+        max_sqrt_dist: 1.0
+        plane_threshold: 0.1
+
+    iOctree:
+      min_extent: 0.2
+      bucket_size: 2
+      downsample: true

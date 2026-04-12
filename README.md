@@ -1,21 +1,27 @@
 # LiDAR Odometry Comparison
 
-Comparison of LiDAR odometry systems on the **R-Campus dataset**
-(Livox Avia, ~1400 m outdoor campus loop, ~19.5 min).
+Comparison of LiDAR odometry systems on two datasets:
 
-Topics: `/livox/lidar` (`livox_interfaces/CustomMsg`) · `/livox/imu` (`sensor_msgs/Imu`)
+| Dataset | Sensor | Length | IMU | Ground Truth |
+|---------|--------|--------|-----|-------------|
+| **R-Campus** | Livox Avia | ~1400 m outdoor loop | 55 Hz | ✗ None (loop-closure proxy) |
+| **KITTI seq 00** | Velodyne HDL-64E | ~4.5 km urban loop | 100 Hz | ✓ Camera-frame poses |
+
+R-Campus topics: `/livox/lidar` (`livox_interfaces/CustomMsg`) · `/livox/imu` (`sensor_msgs/Imu`)
+
+KITTI topics: `/velodyne_points` (`sensor_msgs/PointCloud2` PointXYZIRT) · `/imu/data` (`sensor_msgs/Imu`)
 
 ---
 
 ## Systems
 
-| System | Paper | Year | Type | Script |
-|--------|-------|------|------|--------|
-| **GenZ-LIO** *(this work)* | arXiv 2603.16273 | 2026 | LIO | `scripts/run_genz_lio_rcampus.sh` |
-| [RESPLE](https://github.com/ASIG-X/RESPLE) | RA-L 2025 | 2025 | LIO/LO | `scripts/run_resple_rcampus.sh` |
-| **FAST-LIO2** *(modified)* | T-RO 2022 | 2022 | LIO | `scripts/run_fastlio2_rcampus.sh` |
-| [LIMOncello](https://github.com/fetty31/LIMOncello) | arXiv 2024 | 2024 | LIO | `scripts/run_limoncello_rcampus.sh` |
-| **Traj-LO** *(modified)* | RA-L 2024 | 2024 | LO | `scripts/run_trajlo_rcampus.sh` |
+| System | Paper | Year | Type | R-Campus Script | KITTI Script |
+|--------|-------|------|------|-----------------|-------------|
+| **GenZ-LIO** *(this work)* | arXiv 2603.16273 | 2026 | LIO | `run_genz_lio_rcampus.sh` | `run_genz_lio_kitti.sh` |
+| [RESPLE](https://github.com/ASIG-X/RESPLE) | RA-L 2025 | 2025 | LIO/LO | `run_resple_rcampus.sh` | ✗ No Velodyne support |
+| **FAST-LIO2** *(modified)* | T-RO 2022 | 2022 | LIO | `run_fastlio2_rcampus.sh` | `run_fastlio2_kitti.sh` |
+| [LIMOncello](https://github.com/fetty31/LIMOncello) | arXiv 2024 | 2024 | LIO | `run_limoncello_rcampus.sh` | `run_limoncello_kitti.sh` |
+| **Traj-LO** *(modified)* | RA-L 2024 | 2024 | LO | `run_trajlo_rcampus.sh` | `run_trajlo_kitti.sh` |
 
 ---
 
@@ -194,15 +200,111 @@ bash scripts/run_trajlo_rcampus.sh
 # Poses saved to ~/results/trajlo_r_campus_poses.txt
 ```
 
-### Evaluate with evo
+### Evaluate with evo (R-Campus — no GT)
 
 ```bash
 pip install evo
 
-# Example (replace <gt.txt> with ground truth in TUM format)
-evo_ape tum <gt.txt> ~/results/genz_lio_poses.txt --align --plot
-evo_ape tum <gt.txt> ~/results/fastlio2_poses.txt --align --plot
+# R-Campus has no GT: use SE(3) alignment against a reference trajectory
+evo_ape tum ~/results/resple_poses.txt ~/results/genz_lio_poses.txt --align --plot
 ```
+
+---
+
+## KITTI Odometry Sequence 00
+
+> **Why KITTI?**  R-Campus has no ground truth — ATE can only be approximated.
+> KITTI seq 00 provides camera-frame GT poses so **true ATE** is computable.
+> Sensor: Velodyne HDL-64E (64-beam, ~120k pts/scan, 10 Hz) + OXTS IMU @ 100 Hz.
+> Note: RESPLE does not support Velodyne — it is skipped for KITTI.
+
+### Step 1: Download
+
+```bash
+bash scripts/download_kitti_seq00.sh [~/datasets/kitti_seq00]
+# Downloads:
+#   velodyne scans  (seq 00, 4541 frames)
+#   GT poses        (poses/00.txt, camera frame)
+#   timestamps      (times.txt)
+#   KITTI raw IMU   (2011_10_03_drive_0027/oxts, 100 Hz)
+#   imu_to_velo calibration
+```
+
+### Step 2: Convert to ROS bags
+
+```bash
+pip install rosbags   # if not installed
+
+# Convert KITTI bin + OXTS → ROS2 db3 bag + ROS1 .bag
+python3 scripts/convert_kitti_to_ros2bag.py [--kitti_dir ~/datasets/kitti_seq00]
+# Output:
+#   ~/datasets/kitti_seq00/kitti_seq00_ros2/   ← ROS2 bag (FAST-LIO2, GenZ-LIO, LIMOncello)
+#   ~/datasets/kitti_seq00/kitti_seq00_ros1.bag ← ROS1 bag (Traj-LO)
+
+# Convert GT to TUM format
+python3 scripts/convert_kitti_gt_to_tum.py
+# Output: ~/datasets/kitti_seq00/kitti_seq00_gt_tum.txt
+```
+
+LiDAR point cloud fields in the converted bag:
+- `x, y, z, intensity` — raw KITTI XYZ+I
+- `ring` — computed from elevation angle (HDL-64E: 0=bottom, 63=top)
+- `time` — per-point time offset within scan (estimated from azimuth)
+
+### Step 3: Run algorithms
+
+```bash
+# Terminal 1 — start algorithm (opens RViz)
+bash scripts/run_fastlio2_kitti.sh
+bash scripts/run_genz_lio_kitti.sh
+bash scripts/run_limoncello_kitti.sh
+
+# Terminal 2 — play bag (after RViz opens)
+ros2 bag play ~/datasets/kitti_seq00/kitti_seq00_ros2 --clock
+
+# Traj-LO runs headless (no second terminal needed)
+bash scripts/run_trajlo_kitti.sh
+```
+
+Poses are saved to `~/results/<method>_kitti_poses.txt` (TUM format).
+
+### Step 4: Compare ATE
+
+```bash
+bash scripts/evaluate_ate_kitti.sh          # table only
+bash scripts/evaluate_ate_kitti.sh --plot   # + trajectory plots
+```
+
+Example individual evaluation:
+
+```bash
+GT=~/datasets/kitti_seq00/kitti_seq00_gt_tum.txt
+
+evo_ape tum $GT ~/results/fastlio2_kitti_poses.txt    --align --plot
+evo_ape tum $GT ~/results/genz_lio_kitti_poses.txt    --align --plot
+evo_ape tum $GT ~/results/limoncello_kitti_poses.txt  --align --plot
+evo_ape tum $GT ~/results/trajlo_kitti_poses.txt      --align --plot
+
+# Side-by-side trajectory plot
+evo_traj tum $GT \
+    ~/results/fastlio2_kitti_poses.txt \
+    ~/results/genz_lio_kitti_poses.txt \
+    ~/results/limoncello_kitti_poses.txt \
+    ~/results/trajlo_kitti_poses.txt \
+    --labels "GT FAST-LIO2 GenZ-LIO LIMOncello Traj-LO" \
+    --align --plot
+```
+
+### KITTI config summary
+
+| Algorithm | `lidar_type` | `scan_line` | IMU topic | Extrinsic T (m) |
+|-----------|-------------|-------------|-----------|-----------------|
+| FAST-LIO2 | 2 (Velodyne) | 64 | `/imu/data` | [0.811, -0.320, 0.800] |
+| GenZ-LIO  | 2 (Velodyne) | 64 | `/imu/data` | [0.811, -0.320, 0.800] |
+| LIMOncello | 1 (Velodyne) | — | `/imu/data` | [0.811, -0.320, 0.800] |
+| Traj-LO | `bag_velodyne` | — | — (LO only) | — |
+
+Extrinsics from KITTI `calib_imu_to_velo.txt` (inverted: T_velo→IMU).
 
 ---
 
