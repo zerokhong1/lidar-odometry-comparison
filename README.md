@@ -1,27 +1,30 @@
 # LiDAR Odometry Comparison
 
-Comparison of LiDAR odometry systems on two datasets:
+Comparison of LiDAR odometry systems on three datasets:
 
 | Dataset | Sensor | Length | IMU | Ground Truth |
 |---------|--------|--------|-----|-------------|
 | **R-Campus** | Livox Avia | ~1400 m outdoor loop | 55 Hz | ✗ None (loop-closure proxy) |
 | **KITTI seq 00** | Velodyne HDL-64E | ~4.5 km urban loop | 100 Hz | ✓ Camera-frame poses |
+| **NTU VIRAL eee_03** | Ouster OS1-16 | ~181 s UAV flight | 389 Hz | ✓ Leica prism poses |
 
 R-Campus topics: `/livox/lidar` (`livox_interfaces/CustomMsg`) · `/livox/imu` (`sensor_msgs/Imu`)
 
 KITTI topics: `/velodyne_points` (`sensor_msgs/PointCloud2` PointXYZIRT) · `/imu/data` (`sensor_msgs/Imu`)
 
+NTU VIRAL topics: `/os1_cloud_node1/points` (`sensor_msgs/PointCloud2`) · `/imu/imu` (`sensor_msgs/Imu`)
+
 ---
 
 ## Systems
 
-| System | Paper | Year | Type | R-Campus Script | KITTI Script |
-|--------|-------|------|------|-----------------|-------------|
-| **GenZ-LIO** *(this work)* | arXiv 2603.16273 | 2026 | LIO | `run_genz_lio_rcampus.sh` | `run_genz_lio_kitti.sh` |
-| [RESPLE](https://github.com/ASIG-X/RESPLE) | RA-L 2025 | 2025 | LIO/LO | `run_resple_rcampus.sh` | ✗ No Velodyne support |
-| **FAST-LIO2** *(modified)* | T-RO 2022 | 2022 | LIO | `run_fastlio2_rcampus.sh` | `run_fastlio2_kitti.sh` |
-| [LIMOncello](https://github.com/fetty31/LIMOncello) | arXiv 2024 | 2024 | LIO | `run_limoncello_rcampus.sh` | `run_limoncello_kitti.sh` |
-| **Traj-LO** *(modified)* | RA-L 2024 | 2024 | LO | `run_trajlo_rcampus.sh` | `run_trajlo_kitti.sh` |
+| System | Paper | Year | Type | R-Campus | KITTI | NTU VIRAL |
+|--------|-------|------|------|----------|-------|-----------|
+| **GenZ-LIO** *(this work)* | arXiv 2603.16273 | 2026 | LIO | `run_genz_lio_rcampus.sh` | `run_genz_lio_kitti.sh` | `run_ntu_viral_eee03_pipeline.sh` |
+| [RESPLE](https://github.com/ASIG-X/RESPLE) | RA-L 2025 | 2025 | LIO/LO | `run_resple_rcampus.sh` | ✗ No Velodyne | `run_ntu_viral_eee03_pipeline.sh` |
+| **FAST-LIO2** *(modified)* | T-RO 2022 | 2022 | LIO | `run_fastlio2_rcampus.sh` | `run_fastlio2_kitti.sh` | `run_ntu_viral_eee03_pipeline.sh` |
+| [LIMOncello](https://github.com/CPerezRuiz335/LIMOncello) | arXiv 2512.19567 | 2024 | LIO | `run_limoncello_rcampus.sh` | `run_limoncello_kitti.sh` | `run_ntu_viral_eee03_pipeline.sh` |
+| **Traj-LO** *(modified)* | RA-L 2024 | 2024 | LO | `run_trajlo_rcampus.sh` | `run_trajlo_kitti.sh` | `run_ntu_viral_eee03_pipeline.sh` |
 
 ---
 
