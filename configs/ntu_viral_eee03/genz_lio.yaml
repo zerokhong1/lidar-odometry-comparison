@@ -1,0 +1,64 @@
+/**:
+    ros__parameters:
+        # ── FAST-LIO2 base parameters ──────────────────────────────────────────
+        feature_extract_enable: false
+        point_filter_num: 3
+        max_iteration: 3
+        filter_size_surf: 0.3
+        filter_size_map: 0.5
+        cube_side_length: 1000.0
+        runtime_pos_log_enable: false
+        map_file_path: "/home/thailuu/results/genz_lio_ntu_eee03_map.pcd"
+
+        common:
+            lid_topic:  "/os1_cloud_node1/points"
+            imu_topic:  "/imu/imu"
+            time_sync_en: false
+            time_offset_lidar_to_imu: 0.0
+
+        preprocess:
+            lidar_type: 3           # 3 = Ouster
+            scan_line: 16
+            timestamp_unit: 3       # nanoseconds
+            blind: 4.0
+
+        mapping:
+            acc_cov: 0.1
+            gyr_cov: 0.1
+            b_acc_cov: 0.0001
+            b_gyr_cov: 0.0001
+            fov_degree: 360.0
+            det_range: 100.0
+            extrinsic_est_en: false
+            # T_Body_Lidar1: identity rotation, t=(-0.050, 0.000, 0.055)
+            extrinsic_T: [ -0.050, 0.000, 0.055 ]
+            extrinsic_R: [ 1., 0., 0.,
+                           0., 1., 0.,
+                           0., 0., 1. ]
+
+        publish:
+            path_en: true
+            scan_publish_en: true
+            dense_publish_en: false
+            scan_bodyframe_pub_en: false
+
+        pcd_save:
+            pcd_save_en: false
+            interval: -1
+
+        # ── GenZ-LIO: Scale-aware adaptive voxelization ──────────────────────
+        adaptive_vox:
+            enable: true
+            Nw: 5
+            d_min: 0.02
+            d_max: 1.0
+            N_min: 500.0
+            N_max: 2000.0
+            tau_m: 20.0
+            p_exp: 2.0
+            lambda_p: 0.1
+            lambda_d: 0.2
+            Kp_min: 1.0e-6
+            Kp_max: 1.0e-4
+            Kd_min: 1.0e-9
+            Kd_max: 1.0e-7

@@ -211,6 +211,77 @@ evo_ape tum ~/results/resple_poses.txt ~/results/genz_lio_poses.txt --align --pl
 
 ---
 
+## NTU VIRAL Dataset — eee_03
+
+> All 5 algorithms (including RESPLE) support Ouster LiDAR. eee_03 is a UAV sequence
+> (~3 min, 181 s) in an indoor/outdoor environment with full Leica prism ground truth.
+>
+> LiDAR: Ouster OS1-16 (16-beam) · `/os1_cloud_node1/points`
+> IMU: VN100 @ ~389 Hz · `/imu/imu`
+
+### ATE RMSE — NTU VIRAL eee_03 (Sim3 alignment)
+
+| Algorithm | ATE RMSE [m] | Poses |
+|-----------|-------------|-------|
+| **Traj-LO** | **0.032** | 4531 |
+| RESPLE | 0.151 | 4327 |
+| FAST-LIO2 | 0.237 | 1796 |
+| LIMOncello | 0.259 | 60 311 |
+| GenZ-LIO | 0.286 | 1808 |
+
+![NTU VIRAL eee_03 ATE](ate_ntu_eee03.png)
+
+### Running NTU VIRAL eee_03
+
+```bash
+# 1. Download dataset (~1.9 GB)
+mkdir -p ~/datasets/ntu_viral
+cd ~/datasets/ntu_viral
+wget "https://dataverse.scholix.org/.../eee_03.zip" -O eee_03.zip
+unzip eee_03.zip
+
+# 2. Download ground truth (Leica prism, TUM format)
+# GT available from: https://github.com/ntu-aris/ntuviral_gt
+# Place at: ~/datasets/ntu_viral/gt/eee_03_gt_tum.txt
+
+# 3. Convert ROS1 bag → ROS2 (for ROS2 algorithms)
+python3 - <<'EOF'
+from rosbags.rosbag1 import Reader as R1
+from rosbags.rosbag2 import Writer as R2
+from rosbags.typesys import Stores, get_typestore
+import os, shutil
+src = os.path.expanduser('~/datasets/ntu_viral/eee_03/eee_03.bag')
+dst = os.path.expanduser('~/datasets/ntu_viral/eee_03/eee_03_ros2')
+KEEP = {'/os1_cloud_node1/points', '/os1_cloud_node2/points', '/imu/imu'}
+ts1 = get_typestore(Stores.ROS1_NOETIC); ts2 = get_typestore(Stores.ROS2_HUMBLE)
+if os.path.exists(dst): shutil.rmtree(dst)
+with R1(src) as r1, R2(dst, version=8) as r2:
+    cmap = {t: r2.add_connection(t, i.msgtype, typestore=ts2)
+            for t,i in r1.topics.items() if t in KEEP}
+    for conn,ts,raw in r1.messages():
+        if conn.topic in cmap:
+            r2.write(cmap[conn.topic], ts, ts2.serialize_cdr(ts1.deserialize_ros1(raw,conn.msgtype),conn.msgtype))
+print("Done")
+EOF
+
+# 4. Run full pipeline (all 5 algorithms + ATE)
+bash scripts/run_ntu_viral_eee03_pipeline.sh
+```
+
+### NTU VIRAL config summary
+
+| Algorithm | LiDAR type | scan_line | IMU topic | Extrinsic t (m) |
+|-----------|-----------|-----------|-----------|------------------|
+| FAST-LIO2 | 3 (Ouster) | 16 | `/imu/imu` | [-0.050, 0, 0.055] |
+| GenZ-LIO | 3 (Ouster) | 16 | `/imu/imu` | [-0.050, 0, 0.055] |
+| LIMOncello | 0 (OUSTER) | — | `/imu/imu` | [-0.050, 0, 0.055] |
+| RESPLE | Ouster | 16 | `/imu/imu` | [-0.050, 0, 0.055] |
+| Traj-LO | `bag_ouster` | — | — (LO only) | — |
+
+Extrinsics from `lidar_horz.yaml` (T_Body_Lidar1: identity rotation, t=(-0.05, 0, 0.055)).
+
+---
+
 ## KITTI Odometry Sequence 00
 
 > **Why KITTI?**  R-Campus has no ground truth — ATE can only be approximated.
